@@ -33,7 +33,7 @@ jobs:
           pip install -r requirements.txt pytest
 
       - name: Start services
-        run: docker compose up --build -d
+        run: docker compose up --build -d redis api worker
 
       - name: Wait for API health
         run: |
