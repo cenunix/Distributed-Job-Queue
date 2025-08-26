@@ -1,0 +1,73 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 2s
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./:/code
+    working_dir: /code
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  worker:
+    build: .
+    command: python -m worker.worker
+    volumes:
+      - ./:/code
+    working_dir: /code
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import redis; import os; r=redis.Redis.from_url(os.getenv(\"REDIS_URL\",\"redis://redis:6379/0\")); r.ping()'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./ops/grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./ops/grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./ops/grafana-dashboards:/etc/grafana/provisioning/dashboards-json:ro
+    depends_on:
+      - prometheus

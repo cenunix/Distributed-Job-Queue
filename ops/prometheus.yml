@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 1s
+
+scrape_configs:
+  - job_name: "mini-queue-api"
+    static_configs:
+      - targets: ["api:8000"]

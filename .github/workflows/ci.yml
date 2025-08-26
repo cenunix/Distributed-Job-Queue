@@ -1,0 +1,43 @@
+
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt pytest
+
+      - name: Start services
+        run: docker compose up --build -d
+
+      - name: Wait for API health
+        run: |
+          for i in {1..30}; do
+            curl -fsS http://localhost:8000/health && break
+            sleep 2
+          done
+
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          pytest -q tests/test_basic.py
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

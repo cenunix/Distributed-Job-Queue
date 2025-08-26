@@ -1,0 +1,9 @@
+.venv
+__pycache__/
+*.pyc
+.git
+.gitignore
+node_modules
+*.log
+*.zip
+ops/grafana-dashboards/*.png
