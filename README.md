@@ -18,7 +18,8 @@ make run
 ###### API: http://localhost:8000
 
 ###### Dashboard: http://localhost:8000/dashboard
-
+ <img src=".github/assets/Dashboard.png" alt="Dashboard Preview">
+ 
 - Note: This dashboard is for interactive demos (enqueue jobs, watch them
   drain). For production-grade observability, see Grafana
   (http://localhost:3000)
@@ -34,7 +35,8 @@ make run
     always `1`)
 
 ###### Grafana: http://localhost:3000 (admin/admin; dashboard auto-loaded)
-
+ <img src=".github/assets/Grafana.png" alt="Grafana Preview">
+ 
 ###### Metrics: http://localhost:8000/metrics
 
 ### Enqueue a job
