@@ -18,7 +18,6 @@ bench:
 # Run tests against a fresh stack
 test:
 	docker compose up --build -d
-	# give services a moment (or rely on healthchecks below)
 	sleep 5
 	pytest -q tests/test_basic.py
 	docker compose down
