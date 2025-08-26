@@ -51,6 +51,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
     command: ["--config.file=/etc/prometheus/prometheus.yml"]
     ports:
       - "9090:9090"

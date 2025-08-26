@@ -1,7 +1,5 @@
 # Distributed Job Queue (FastAPI + Redis)
 
-A compact, resume-ready project demonstrating distributed systems concepts:
-
 - Priority queues (**high/default/low**), scheduled jobs, retries with
   exponential backoff, dead-letter queue
 - REST API for enqueue + status
@@ -9,16 +7,35 @@ A compact, resume-ready project demonstrating distributed systems concepts:
 - Live dashboard (`/dashboard`) with demo buttons
 - Horizontally scalable workers + benchmark script
 
-## Quick Start (Docker)
+## Quick Start (Docker) Or use Makefile
 
 ```bash
 docker compose up --build -d
-# API:       http://localhost:8000
-# Dashboard: http://localhost:8000/dashboard
-# Metrics:   http://localhost:8000/metrics
-# Prometheus: http://localhost:9090
-# Grafana:    http://localhost:3000  (admin/admin; dashboard auto-loaded)
+or
+make run
 ```
+
+###### API: http://localhost:8000
+
+###### Dashboard: http://localhost:8000/dashboard
+
+- Note: This dashboard is for interactive demos (enqueue jobs, watch them
+  drain). For production-grade observability, see Grafana
+  (http://localhost:3000)
+
+###### Prometheus: http://localhost:9090
+
+- Extra Gauges
+
+  - `queue_size{priority=...}` – live queue depth by priority
+  - `queue_scheduled` – scheduled jobs awaiting promotion
+  - `queue_deadletter` – dead-letter backlog
+  - `job_queue_build_info{version="…",git_commit="…"}` – build metadata (value
+    always `1`)
+
+###### Grafana: http://localhost:3000 (admin/admin; dashboard auto-loaded)
+
+###### Metrics: http://localhost:8000/metrics
 
 ### Enqueue a job
 

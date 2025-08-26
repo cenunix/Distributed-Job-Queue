@@ -22,6 +22,11 @@ async def test_echo_flow():
 
 
 def test_metrics_available():
-    r = httpx.get("http://localhost:8000/metrics", timeout=5)
+    r = httpx.get("http://localhost:8000/metrics", timeout=5.0)
     r.raise_for_status()
-    assert "job_queue_enqueued_total" in r.text
+    body = r.text
+    # At least one of our custom gauges + build info should be present
+    assert "queue_size" in body
+    assert "queue_scheduled" in body
+    assert "queue_deadletter" in body
+    assert "job_queue_build_info" in body

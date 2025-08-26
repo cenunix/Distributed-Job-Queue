@@ -1,0 +1,16 @@
+
+groups:
+  - name: queue_alerts
+    rules:
+      - alert: DeadLetterJobs
+        expr: queue_deadletter > 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: Dead-letter backlog present
+      - alert: HighRetryRate
+        expr: sum(rate(job_queue_retries_total[5m])) > 5
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: Elevated retry rate

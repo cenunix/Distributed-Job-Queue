@@ -1,3 +1,4 @@
+from os import getenv
 from typing import Optional, Dict, Any, Literal
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -19,7 +20,9 @@ from common.queue import (
 )
 from common.metrics import inc_counter, render_prometheus, observe_histogram
 
-app = FastAPI(title="Mini Distributed Job Queue", version="0.3.0")
+APP_VERSION = "0.3.0"  # keep in one place
+
+app = FastAPI(title="Mini Distributed Job Queue", version=APP_VERSION)
 
 Priority = Literal["high", "default", "low"]
 
@@ -106,8 +109,23 @@ async def tick():
 @app.get("/metrics")
 async def metrics():
     r = await get_redis()
-    text = await render_prometheus(r)
-    return Response(content=text, media_type="text/plain")
+    base = await render_prometheus(r)  # existing counters + histograms
+
+    # --- Runtime gauges (queue depths) ---
+    lines = []
+    for prio, qname in QUEUES.items():
+        n = await r.llen(qname)
+        lines.append(f'queue_size{{priority="{prio}"}} {n}')
+    lines.append(f"queue_scheduled {await r.zcard(SCHEDULED_ZSET)}")
+    lines.append(f"queue_deadletter {await r.llen(DEAD_LETTER)}")
+
+    # --- Build info (static “1” series with labels) ---
+    git = getenv("GIT_COMMIT", "dev")
+    lines.append(
+        f'job_queue_build_info{{version="{APP_VERSION}",git_commit="{git}"}} 1'
+    )
+
+    return Response(content=base + "\n".join(lines) + "\n", media_type="text/plain")
 
 
 @app.get("/queues")
