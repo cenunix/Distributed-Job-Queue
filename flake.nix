@@ -80,6 +80,7 @@
               httpx
               redis
               pytest
+              pytest-asyncio
             ];
           };
         }
